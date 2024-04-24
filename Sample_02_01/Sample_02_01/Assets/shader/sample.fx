@@ -34,10 +34,10 @@ VSOutput VSMain(VSInput In)
 float4 PSMain(VSOutput vsOut) : SV_Target0
 {
     //return float4(1.0f, 0.0f, 0.0f, 1.0f); //赤
-    //return float4(1.0f, 1.0f, 1.0f, 1.0f); //白
+    return float4(1.0f, 1.0f, 1.0f, 1.0f); //白
     //return float4(0.0f, 0.0f, 0.0f, 1.0f); //黒
     //return float4(0.5f, 0.5f, 0.5f, 1.0f); //灰
-    return float4(0.25f, 0.25f, 0.25f, 1.0f); //濃灰
+    //return float4(0.25f, 0.25f, 0.25f, 1.0f); //濃灰
 
     //vsOut.pos.x = 0.5f;
     //vsOut.pos.y = 0.5f;
