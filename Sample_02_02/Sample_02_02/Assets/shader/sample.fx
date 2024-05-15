@@ -41,5 +41,6 @@ float4 PSMain(VSOutput vsOut) : SV_Target0
     color.y = vsOut.color.y;
     color.z = vsOut.color.z;
     color.w = 1.0f;
+
     return color;
 }
