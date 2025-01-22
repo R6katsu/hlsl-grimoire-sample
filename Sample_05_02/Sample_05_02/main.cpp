@@ -19,14 +19,21 @@ struct Light
     float ptRange;          // 影響範囲
 
     // step-1 ライト構造体にスポットライト用のメンバ変数を追加
+    Vector3 spPosition;
+    float pad3;
+    Vector3 spColor;
+    float spRange;
+    Vector3 spDirection;
+    float spAngle;
 
     Vector3 eyePos;         // 視点の位置
     float pad4;
 
     Vector3 ambientLight;   // アンビエントライト
 };
+
 //////////////////////////////////////
-//関数宣言
+// 関数宣言
 //////////////////////////////////////
 void InitModel(Model& bgModel, Model& teapotModel, Model& lightModel, Light& light);
 void InitDirectionLight(Light& light);
@@ -47,7 +54,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     //////////////////////////////////////
     // ここから初期化を行うコードを記述する
     //////////////////////////////////////
-
     // ライトのデータを作成する
     Light light;
     // ディレクションライトを初期化する
@@ -58,11 +64,28 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     InitAmbientLight(light);
 
     // step-2 スポットライトのデータを初期化する
+    light.spPosition.x = 0.0f;
+    light.spPosition.y = 50.0f;
+    light.spPosition.z = 0.0f;
+
+    light.spColor.x = 10.0f;
+    light.spColor.y = 10.0f;
+    light.spColor.z = 10.0f;
+
+    light.spDirection.x = 1.0f;
+    light.spDirection.y = -1.0f;
+    light.spDirection.z = 1.0f;
+
+    light.spDirection.Normalize();
+
+    light.spRange = 300.0f;
+
+    light.spAngle = Math::DegToRad(25.0f);
 
     // モデルを初期化する
     // モデルを初期化するための情報を構築する
     Model lightModel, bgModel, teapotModel;
-    InitModel(bgModel, teapotModel, lightModel , light);
+    InitModel(bgModel, teapotModel, lightModel, light);
 
     //////////////////////////////////////
     // 初期化を行うコードを書くのはここまで！！！
@@ -72,20 +95,58 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     // ここからゲームループ
     while (DispatchWindowMessage())
     {
-        // レンダリング開始
+        //レンダリング開始
         g_engine->BeginFrame();
+
         //////////////////////////////////////
         // ここから絵を描くコードを記述する
         //////////////////////////////////////
 
         // step-3 コントローラー左スティックでスポットライトを移動させる
+        light.spPosition.x -= g_pad[0]->GetLStickXF();
+        if (g_pad[0]->IsPress(enButtonB))
+        {
+            light.spPosition.y += g_pad[0]->GetLStickYF();
+        }
+        else
+        {
+            light.spPosition.z -= g_pad[0]->GetLStickYF();
+        }
+
+        // 勝手に上昇
+        light.spPosition.y += 0.1f;
 
         // step-4 コントローラー右スティックでスポットライトを回転させる
-		
+        Quaternion qRotY;
+
+        if (g_pad[0]->GetRStickXF() != 0.0f)
+        {
+            qRotY.SetRotationY(g_pad[0]->GetRStickXF() * 0.01f);
+        }
+        else
+        {
+            // 無操作状態で回転
+            qRotY.SetRotationY(0.01f);
+        }
+
+        qRotY.Apply(light.spDirection);
+
+        Vector3 rotAxis;
+        rotAxis.Cross(g_vec3AxisY, light.spDirection);
+        Quaternion qRotX;
+        qRotX.SetRotation(rotAxis, g_pad[0]->GetRStickYF() * 0.01f);
+
+        qRotX.Apply(light.spDirection);
+
+        Quaternion qRot;
+        qRot.SetRotation({ 0.0f, 0.0f, -1.0f }, light.spDirection);
+
+        lightModel.UpdateWorldMatrix(light.spPosition, qRot, g_vec3One);
+
         // 背景モデルをドロー
         bgModel.Draw(renderContext);
 
-        // スポットライトモデルをドロー
+        // 電球モデルをドロー
         lightModel.Draw(renderContext);
 
         //////////////////////////////////////
@@ -108,7 +169,6 @@ void InitModel(Model& bgModel, Model& teapotModel, Model& lightModel, Light& lig
 {
     ModelInitData bgModelInitData;
     bgModelInitData.m_tkmFilePath = "Assets/modelData/bg.tkm";
-
     // 使用するシェーダーファイルパスを設定する
     bgModelInitData.m_fxFilePath = "Assets/shader/sample.fx";
 
