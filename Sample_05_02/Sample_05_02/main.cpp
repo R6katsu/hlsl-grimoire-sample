@@ -78,7 +78,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
     light.spDirection.Normalize();
 
-    light.spRange = 300.0f;
+    light.spRange = 5000.0f;
 
     light.spAngle = Math::DegToRad(25.0f);
 
@@ -114,7 +114,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
         }
 
         // 勝手に上昇
-        light.spPosition.y += 0.1f;
+        light.spPosition.y += 0.05f;
 
         // step-4 コントローラー右スティックでスポットライトを回転させる
         Quaternion qRotY;
@@ -134,7 +134,16 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
         Vector3 rotAxis;
         rotAxis.Cross(g_vec3AxisY, light.spDirection);
         Quaternion qRotX;
-        qRotX.SetRotation(rotAxis, g_pad[0]->GetRStickYF() * 0.01f);
+
+        if (g_pad[0]->GetRStickXF() != 0.0f)
+        {
+            qRotX.SetRotation(rotAxis, g_pad[0]->GetRStickYF() * 0.01f);
+        }
+        else
+        {
+            // 無操作状態で回転
+            qRotX.SetRotation(rotAxis, -0.001f);
+        }
 
         qRotX.Apply(light.spDirection);
 
